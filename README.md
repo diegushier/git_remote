@@ -11,4 +11,6 @@ Your credentials will be stored in the git system and you will have cloned your 
 
 The script can be changed in order to use **fetch** **push** or **pull**.
 
-<h2> In order to make life easier, the caller script for installing is ```installer_script```.
+<h3> UPDATE </h3>
+
+In order to make life easier, the caller script for installing is ```installer_script```.
