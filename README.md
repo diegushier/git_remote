@@ -10,3 +10,5 @@ When the installation is complete, the only thing that lefts is use the script `
 Your credentials will be stored in the git system and you will have cloned your repo. 
 
 The script can be changed in order to use **fetch** **push** or **pull**.
+
+<h2> In order to make life easier, the caller script for installing is ```installer_script```.

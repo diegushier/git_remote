@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Caller of the inner script installer.
+
+./installer/install
