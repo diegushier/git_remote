@@ -2,4 +2,6 @@
 dep=False
 git_remote=False
 env_file=False
+
 file=git_remote
+location=$(pwd)

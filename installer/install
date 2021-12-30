@@ -7,21 +7,34 @@
 #	|___|_| \_|____/ |_/_/   \_\_____|_____|
 # ====================================================                                
 
-. var
+. $(pwd)/installer/var
 
 checkers() {
 	if [ -z $( expect -v &> /dev/null) ]; then dep=True; fi;
 
-	if [ -f ../$file ]; then git_remote=True; fi;
+	if [ -f $location/$file ]; then git_remote=True; fi;
 
-	if [ -f ../var/.env ]; then env_file=True; fi;
+	if [ -f $location/var/.env ]; then env_file=True; fi;
 }
 
 create_script(){
-	cat << 'EOF' > ../git_remote
+	cd $location
+	cat << 'EOF' > git_remote
 #!/bin/bash
 . var/.env
 repository=$1
+
+cd
+
+if [ -z $(grep helper .gitconfig &> /dev/null) ]; then
+	cd -
+	git clone $repository
+	exit 0
+fi;
+
+cd -
+
+git congif --global credential.helper store
 
 expect <<- DONE
 set timeout -1
@@ -38,20 +51,23 @@ send -- "\r"
 expect eof
 EOF
 
-	chmod +x ../$file
+	chmod +x $file
+	cd -
 }
 
 create_env(){
-	cat << 'EOF' > ../var/.env
+	cd $location
+	cat << 'EOF' > var/.env
 #[credentials]
 user=
 token=	
 EOF
-	cat << EOF > ../.gitignore 
+	cat << EOF > .gitignore 
 var/.env
 EOF
 
-	chmod +x ../var/.env
+	chmod +x var/.env
+	cd -
 }
 
 install(){
@@ -60,27 +76,27 @@ install(){
 			error missing dep
 			exit 0
 		     else
-			install git; install env;
+			install git $location; install env $location;
 		     fi;;
 
 		git) if [ $git_remote = True ]; then
 			read -p "The script already exists. You want to recreate it? Y|y" input
-			if [ $input = Y ] ||  [ $input = y ]; then create_script; fi
+			if [ $input = Y ] ||  [ $input = y ]; then create_script $location; fi
 		     else
-			create_script		
+			create_script $location
 		     fi;;
 		
 		env) if [ ! $env_file = True ]; then
-			mkdir ../var
-			create_env
+			mkdir $location/var
+			create_env $location
 		     fi;;
 
 		*) ;;
 	esac		
 }
 
-read -p "You are going to install the script. Please accept Y|y" input
+read -p "You are going to install the script. Please accept Y|y " input
 if [ $input = Y ] || [ $input = y ]; then
-	checkers $dep $git_remote $env_file
-	install dep $dep $git_remote $env_file
+	checkers $dep $git_remote $env_file $location
+	install dep $dep $git_remote $env_file $location
 fi;
