@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+ 
+#	 ___ _   _ ____ _____  _    _     _     
+#	|_ _| \ | / ___|_   _|/ \  | |   | |    
+#	 | ||  \| \___ \ | | / _ \ | |   | |    
+#	 | || |\  |___) || |/ ___ \| |___| |___ 
+#	|___|_| \_|____/ |_/_/   \_\_____|_____|
+# ====================================================                                
+
+. var
+
+checkers() {
+	if [ -z $( expect -v &> /dev/null) ]; then dep=True; fi;
+
+	if [ -f ../$file ]; then git_remote=True; fi;
+
+	if [ -f ../var/.env ]; then env_file=True; fi;
+}
+
+create_script(){
+	cat << 'EOF' > ../git_remote
+#!/bin/bash
+. var/.env
+repository=$1
+
+expect <<- DONE
+set timeout -1
+
+spawn git clone $repository
+
+expect "Username*"
+send -- "$user"
+send -- "\r"
+
+expect "Password*"
+send -- "$token"
+send -- "\r"
+expect eof
+EOF
+
+	chmod +x ../$file
+}
+
+create_env(){
+	cat << 'EOF' > ../var/.env
+#[credentials]
+user=
+token=	
+EOF
+	cat << EOF > ../.gitignore 
+var/.env
+EOF
+
+	chmod +x ../var/.env
+}
+
+install(){
+	case $1 in 
+		dep) if [ ! $dep = True ]; then
+			error missing dep
+			exit 0
+		     else
+			install git; install env;
+		     fi;;
+
+		git) if [ $git_remote = True ]; then
+			read -p "The script already exists. You want to recreate it? Y|y" input
+			if [ $input = Y ] ||  [ $input = y ]; then create_script; fi
+		     else
+			create_script		
+		     fi;;
+		
+		env) if [ ! $env_file = True ]; then
+			mkdir ../var
+			create_env
+		     fi;;
+
+		*) ;;
+	esac		
+}
+
+read -p "You are going to install the script. Please accept Y|y" input
+if [ $input = Y ] || [ $input = y ]; then
+	checkers $dep $git_remote $env_file
+	install dep $dep $git_remote $env_file
+fi;
