@@ -8,6 +8,7 @@
 # ====================================================                                
 
 . $(pwd)/installer/var
+. $(pwd)/installer/files
 
 checkers() {
 	if [ -z $( expect -v &> /dev/null) ]; then dep=True; fi;
@@ -15,44 +16,6 @@ checkers() {
 	if [ -f $location/$file ]; then git_remote=True; fi;
 
 	if [ -f $location/var/.env ]; then env_file=True; fi;
-}
-
-create_script(){
-	cd $location
-	cat << 'EOF' > git_remote
-#!/bin/bash
-. var/.env
-repository=$1
-
-cd
-
-if [ -z $(grep helper .gitconfig &> /dev/null) ]; then
-	cd -
-	git clone $repository
-	exit 0
-fi;
-
-cd -
-
-git congif --global credential.helper store
-
-expect <<- DONE
-set timeout -1
-
-spawn git clone $repository
-
-expect "Username*"
-send -- "$user"
-send -- "\r"
-
-expect "Password*"
-send -- "$token"
-send -- "\r"
-expect eof
-EOF
-
-	chmod +x $file
-	cd -
 }
 
 create_env(){

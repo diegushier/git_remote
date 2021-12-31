@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+. $(pwd)/installer/var
+
+create_script(){
+	cd $location
+	cat << 'EOF' > git_remote
+#!/bin/bash
+. var/.env
+run=$1
+repository=$2
+
+core() {
+	if [ ! $run = clone ] || [ ! $run = pull ] ||
+	       [ ! $run = push ] || [ ! $run = fetch ]; then
+		echo "Option no available"; exit 0
+	fi;
+
+	git congif --global credential.helper store
+
+	case $run in
+		clone)
+
+	expect <<- DONE
+	set timeout -1
+
+	spawn git $run $repository
+
+	expect "Username*"
+	send -- "$user"
+	send -- "\r"
+
+	expect "Password*"
+	send -- "$token"
+	send -- "\r"
+	expect eof
+	DONE
+		;;
+
+		*)
+	expect <<- DONE
+	set timeout -1
+
+	spawn git $run $repository
+
+	expect "Username*"
+	send -- "$user"
+	send -- "\r"
+
+	expect "Password*"
+	send -- "$token"
+	send -- "\r"
+	expect eof
+	DONE
+		;;
+	esac
+}
+
+cd 
+if [ -z $(grep helper $HOME/.gitconfig) ]; then
+	cd -
+	case $1 in
+		clone) git clone $2;;
+		fetch) git fetch;;
+		pull) git pull;;
+		push) git push;;
+		*) ;;
+	esac
+fi;
+cd -
+core
+EOF
+	chmod +x git_remote
+	cd -
+}
